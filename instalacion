@@ -143,3 +143,39 @@ output {
 /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/logstash.conf --path.settings=/etc/logstash
 
 
+-----------------------------------------------
+filebeat, se instala en los servidores clientes
+-----------------------------------------------
+--Logs de fielbeat
+vi /var/log/filebeat/filebeat
+--Archivo de configuración
+vi /etc/filebeat
+vi filebeat.yml
+
+ # Change to true to enable this input configuration.
+  #enabled: false
+  enabled: true
+
+  # Paths that should be crawled and fetched. Glob based paths.
+  paths:
+    #- /var/log/*.log
+    #- c:\programdata\elasticsearch\logs\*
+    - /etc/httpd/logs/*
+
+output.elasticsearch:
+  # Array of hosts to connect to.
+  #hosts: ["localhost:9200"]
+  hosts: ["192.168.163:9200"]
+
+--Nosotros queremos el output con logstash y solo podemos definir un otput
+  por eso deberemos comentar la salida a elasticsearch y editar la salida con logstash
+  # ------------------------------ Logstash Output -------------------------------
+output.logstash:
+  # The Logstash hosts
+  #hosts: ["localhost:5044"]
+  hosts: ["192.168.1.163:5044"]
+
+  
+  
+
+
