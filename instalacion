@@ -1,0 +1,145 @@
+------------------------
+Instalar ELK 
+------------------------
+8G ram
+192.168.1.163
+
+vi /etc/hostname
+yum -y install java-openjdk
+
+--afegim repositori
+cat <<EOF | sudo tee /etc/yum.repos.d/elasticsearch.repo
+[elasticsearch-7.x]
+name=Elasticsearch repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+
+--Importem la clau GPG
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+yum -y install elasticsearch
+[root@elastic01 ~]# systemctl start elasticsearch
+[root@elastic01 ~]# systemctl enable elasticsearch
+yum  -y install kibana
+[root@elastic01 ~]# systemctl start kibana
+[root@elastic01 ~]# systemctl enable kibana
+sudo vim /etc/kibana/kibana.yml
+server.host: "0.0.0.0"
+server.name: "kibana.example.com"
+elasticsearch.url: "http://localhost:9200"
+firewall-cmd --zone=public --add-port=5601/tcp --permanent
+
+//scripts ejecucion elastic y kibana
+cd /usr/share/elasticsearch
+cd /usr/share/kibana
+
+//archivos config elastic
+cd /etc/elasticsearch
+cd /etc/kibana
+
+//archivos logs elastic
+cd /var/logs/elasticsearch
+kibana no tiene logs
+
+//los datos de la bbdd se almacenan en 
+cd /var/lib/elasticsearch
+
+//buenas prácticas
+Dar la mitad de la memòria de nuestro servidor a elastic ejemplo de 6g de RAM
+en el directorio jvmoption.d creamos y editamos el fichero heap_memory.options
+-Xms3g
+-Xmx3g
+
+en el fichero elasticsearch.yaml descomentamos la linia
+bootstrap.memory_lock: true 
+
+vi /etc/sysconfig/elasticsearch DESCOMENTAMOS LA LINIA
+MAX_LOCKED_MEMORY=unlimited
+
+deshabilitar mmoria swap para que las consultas vayan más rápidas
+swapoff -a
+#/dev/mapper/centos-swap swap                    swap    defaults        0 0
+
+firewall-cmd --zone=public --add-port=9200/tcp --permanent
+--------------------
+poner nombre cluster
+--------------------
+/etc/elasticsearch/elasticsearch.yaml 
+-- editamos la linia
+cluster.name: elkplataformes
+node.name: ${HOSTNAME}
+network.host: 192.168.1.163
+discovery.seed_hosts : 192.168.1.163:9300
+
+
+--------------------------
+ver el servicio de kibana
+---------------------------
+vi /etc/kibana/kibana.yml
+editamos
+logging.dest: /var/log/kibana/kibana.log
+
+
+
+
+------------------------
+Instalar Logstash
+------------------------
+yum -y install java-openjdk
+
+Import Elastic Repo GPG signing key
+rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+Create Elastic 7.x Repo
+cat > /etc/yum.repos.d/elastic-7.x.repo << EOF
+[elasticsearch-7.x]
+name=Elasticsearch repository for 7.x packages
+baseurl=https://artifacts.elastic.co/packages/7.x/yum
+gpgcheck=1
+gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+enabled=1
+autorefresh=1
+type=rpm-md
+EOF
+And now you can just install Logstash using the YUM/DNF package manager.
+
+yum install logstash
+Testing Logstash
+To test your Logstash installation, run the most basic Logstash pipeline.
+
+cd /usr/share/logstash/bin/
+./logstash -e 'input { stdin { } } output { stdout {} }'
+
+
+------------------------------
+archivo configuración logstash
+------------------------------
+cd /etc/logstash/conf.d
+vi logstash.conf
+input {
+ file {
+ path => "/home/elastic/Documents/datos.json"
+ start_position => "beginning"
+ codec => "json"
+ }
+}
+
+filter {
+ mutate {
+ remove_field => [ "@version" ]
+ gsub => ["surname", " - ", ""]
+ }
+}
+
+output {
+ stdout { codec => rubydebug }
+}
+
+
+/usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/logstash.conf --path.settings=/etc/logstash
+
+
