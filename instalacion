@@ -202,5 +202,7 @@ output {
 
  
  instalar filebeat en server dsv WL12
+ 
+ /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/weblogic.conf --path.settings /etc/logstash/
 
 
