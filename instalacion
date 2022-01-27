@@ -178,9 +178,10 @@ output.logstash:
   
  ----------------------- configuracion prueba apache.conf------------
  input {
- beats {
-   port => 5044
- }
+   beats {
+     port => 5044
+   }
+   start_position => "beginning"
 }
 filter {
  grok {
