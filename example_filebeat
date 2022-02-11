@@ -1,1 +1,20 @@
-d
+###exemple multilinia aplicacions java
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /home/mroura/proves13/*
+    tags: ["registreunic"]
+    multiline.pattern: '^\['
+    multiline.negate: true
+    multiline.match: after
+    
+  - type: log
+    enabled: true
+    paths:
+      - /home/mroura/proves13/*
+    tags: ["nom_aplicacio"]
+    multiline.pattern: '^\['
+    multiline.negate: true
+    multiline.match: after
+ 
